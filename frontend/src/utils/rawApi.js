@@ -10,9 +10,9 @@ const rawApi = (url, {headers, ...options} = {}) =>
 		{
 			timeout: 2 * 60 * 1000,
 			headers: {
-				Authorization: `Bearer ${get('accessToken')}`,
 				...headers
 			},
+			credentials: 'include',
 			hooks: {
 				afterResponse: [
 					(request, options, response) => {

@@ -23,7 +23,8 @@ const Login = () => {
 				try {
 					const response = await ky
 						.post('http://127.0.0.1:8000/auth/jwt/login', {
-							body: new URLSearchParams(values), timeout: 2 * 60 * 1000
+							body: new URLSearchParams(values), timeout: 2 * 60 * 1000,
+							credentials: 'include',
 						});
 					if (response.ok){
 						notification.success({

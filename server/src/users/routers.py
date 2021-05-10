@@ -22,7 +22,6 @@ cookie_authentication = CookieAuthentication(
     lifetime_seconds=3600,
     cookie_secure=False,
     cookie_httponly=False,
-    cookie_domain='127.0.0.1',
 )
 
 fastapi_users = FastAPIUsers(

@@ -2,6 +2,8 @@ import React from 'react';
 import {notification, Spin} from 'antd';
 import {Switch, Route, Redirect, useRouteMatch} from 'react-router-dom';
 import api from '../../utils/api';
+import GameComponent from '../../components/game'
+import Layout from '../../components/layout';
 
 
 const Game = () => {
@@ -32,9 +34,16 @@ const Game = () => {
 		);
 
 	return (
-		<div>
-			Game
-		</div>
+		<Layout email={user}>
+			<Switch>
+				<Route path={`${path}/play`}>
+					<GameComponent />
+				</Route>
+				<Route exact path={path}>
+					<Redirect to={`${path}/play`} />
+				</Route>
+			</Switch>
+		</Layout>
 	);
 };
 

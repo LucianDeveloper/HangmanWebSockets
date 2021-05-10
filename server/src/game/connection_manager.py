@@ -2,6 +2,11 @@ from typing import List
 from fastapi import WebSocket
 
 
+class Pair:
+    def __init__(self, first_user: WebSocket):
+        pass
+
+
 class ConnectionManager:
     def __new__(cls):
         if not hasattr(cls, 'instance'):
@@ -10,6 +15,7 @@ class ConnectionManager:
 
     def __init__(self):
         self.active_connections: List[WebSocket] = []
+        self.pairs: List[Pair] = []
 
     async def connect(self, websocket: WebSocket):
         await websocket.accept()

@@ -20,7 +20,9 @@ async def get_cookie_or_token(
 cookie_authentication = CookieAuthentication(
     secret=SECRET,
     lifetime_seconds=3600,
-    name="my-cookie",
+    cookie_secure=False,
+    cookie_httponly=False,
+    cookie_domain='127.0.0.1',
 )
 
 fastapi_users = FastAPIUsers(
@@ -33,9 +35,9 @@ fastapi_users = FastAPIUsers(
 )
 
 
-fastapi_jwt = fastapi_users.get_auth_router(cookie_authentication)
+fastapi_cookies = fastapi_users.get_auth_router(cookie_authentication)
 
 
-@fastapi_jwt.post("/refresh")
+@fastapi_cookies.post("/refresh")
 async def refresh_jwt(response: Response, user=Depends(fastapi_users.get_current_active_user)):
     return await cookie_authentication.get_login_response(user, response)

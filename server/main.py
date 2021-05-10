@@ -1,16 +1,12 @@
 from config import DB_URL, DBPaths
 from tortoise.contrib.fastapi import register_tortoise
-from fastapi import FastAPI, WebSocket, WebSocketDisconnect, status
-from fastapi import Depends
-from src.users.schemas import User
-from src.game.connection_manager import manager
-
+from fastapi import FastAPI
+from src.game.routers import ws_router
 
 from src.users.routers import (
-    fastapi_jwt,
+    fastapi_cookies,
     fastapi_users,
     SECRET,
-    get_cookie_or_token
 )
 from fastapi.staticfiles import StaticFiles
 from fastapi.middleware.cors import CORSMiddleware
@@ -68,7 +64,7 @@ app.add_middleware(
 )
 
 app.include_router(
-    fastapi_jwt, prefix="/auth/jwt", tags=["Auth"]
+    fastapi_cookies, prefix="/auth/jwt", tags=["Auth"]
 )
 app.include_router(
     fastapi_users.get_register_router(), prefix="/auth", tags=["Auth"]
@@ -80,25 +76,9 @@ app.include_router(
 
 app.include_router(fastapi_users.get_users_router(), prefix="/users", tags=["Пользователи"])
 
+app.include_router(ws_router)
+
 app.mount("/static", StaticFiles(directory="static"), name="static")
-
-
-@app.websocket("/ws/{client_id}")
-async def websocket_endpoint(
-        websocket: WebSocket, client_id: int,
-        cookie_or_token: str = Depends(get_cookie_or_token),
-):
-    if cookie_or_token is None:
-        return
-    await manager.connect(websocket)
-    try:
-        while True:
-            data = await websocket.receive_text()
-            await manager.send_personal_message(f"You wrote: {data}", websocket)
-            await manager.broadcast(f"Client #{client_id} says: {data}")
-    except WebSocketDisconnect:
-        manager.disconnect(websocket)
-        await manager.broadcast(f"Client #{client_id} left the chat")
 
 
 @app.get("/")

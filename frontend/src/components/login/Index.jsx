@@ -58,7 +58,7 @@ const FormContent = () => {
 			visible
 			closable={false}
 			centered
-			title="Администрирование Чертаново"
+			title="Авторизация"
 			width="min(90vw, 1000px)"
 			footer={<SubmitReset submitLabel="Войти" />}
 		>

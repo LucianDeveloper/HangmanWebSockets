@@ -67,10 +67,15 @@ const Game = () => {
                         <Footer>
                             <KeyboardGame correctChars={gameVars.answer}
                                           usedChars={gameVars.used_chars}
-                                          onSelectChar={(char) => {
-                                              const newGameVars = {...gameVars, new_char: char}
-                                              websocket.send(JSON.stringify(newGameVars))
-                                          }}
+                                          onSelectChar={
+                                              (gameVars.is_finish) ?
+                                                  (char) => null
+                                                  :
+                                                  (char) => {
+                                                      const newGameVars = {...gameVars, new_char: char}
+                                                      websocket.send(JSON.stringify(newGameVars))
+                                                  }
+                                          }
                             />
                         </Footer>
                     )

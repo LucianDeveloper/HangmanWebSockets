@@ -56,4 +56,4 @@ class ConnectionManager:
                 return
 
 
-manager = ConnectionManager()
+game_manager = ConnectionManager()

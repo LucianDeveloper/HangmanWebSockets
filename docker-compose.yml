@@ -1,0 +1,68 @@
+version: '3.3'
+
+services:
+  app:
+    build:
+      context: server/
+      dockerfile: Dockerfile
+    container_name: backend_hangman
+    command: uvicorn main:app --host 0.0.0.0 --port 8000 --reload
+    env_file:
+      - ./.env
+    depends_on:
+      - db
+    expose:
+      - 8000
+    volumes:
+      - static_volume:/home/app/static
+    networks:
+      - hangman
+  frontend:
+    build:
+      context: frontend/
+      dockerfile: Dockerfile
+    container_name: frontend_hangman
+    command: npm start
+    env_file:
+      - ./.env
+    depends_on:
+      - app
+    expose:
+      - 3000
+    volumes:
+      - node_modules:/app/node_modules
+    networks:
+      - hangman
+  db:
+    image: postgres:11
+    container_name: db_hangman
+    volumes:
+      - postgres_data:/var/lib/postgresql/data/
+    env_file:
+      - ./.env
+    ports:
+      - 5435:5432
+    networks:
+      - hangman
+  nginx:
+    image: nginx:mainline-alpine
+    container_name: nginx_hangman
+    ports:
+      - 80:80
+      - 8000:8000
+      - 443:443
+    volumes:
+      - static_volume:/home/app/static
+      - ./nginx:/etc/nginx/conf.d
+      - node_modules:/app/node_modules
+    depends_on:
+      - frontend
+    networks:
+      - hangman
+volumes:
+  postgres_data:
+  static_volume:
+  node_modules:
+
+networks:
+  hangman:

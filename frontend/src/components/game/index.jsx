@@ -32,7 +32,7 @@ const Game = () => {
         }, [websocket]
     )
 
-    let renderedElement = null;
+    let renderedElement;
     if (gameVars === null)
         renderedElement = <Spin />
     else {

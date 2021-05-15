@@ -10,7 +10,7 @@ from src.users.routers import (
 )
 from fastapi.staticfiles import StaticFiles
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import HTMLResponse
+
 
 app = FastAPI(
     title='HangMan WebSockets',

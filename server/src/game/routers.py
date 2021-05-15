@@ -1,25 +1,22 @@
 from fastapi import WebSocket, WebSocketDisconnect, APIRouter
 from fastapi import Depends
+from src.users.websocket_auth import get_cookie_or_token
+from src.users.schemas import User
 from src.game.connection_manager import manager
-from src.users.routers import get_cookie_or_token
 
 
 ws_router = APIRouter()
 
 
-@ws_router.websocket("/ws/{client_id}")
+@ws_router.websocket("/ws")
 async def websocket_endpoint(
-        websocket: WebSocket, client_id: int,
-        # cookie_or_token: str = Depends(get_cookie_or_token),
+        websocket: WebSocket, user: str = Depends(get_cookie_or_token)
 ):
-    # if cookie_or_token is None:
-    #     return
-    await manager.connect(websocket)
+    # print(user)
+    await manager.connect(websocket, None)
     try:
         while True:
-            data = await websocket.receive_text()
-            await manager.send_personal_message(f"You wrote: {data}", websocket)
-            await manager.broadcast(f"Client #{client_id} says: {data}")
+            data = await websocket.receive_json()
+            await manager.new_game_action(websocket, data, user)
     except WebSocketDisconnect:
         manager.disconnect(websocket)
-        await manager.broadcast(f"Client #{client_id} left the chat")

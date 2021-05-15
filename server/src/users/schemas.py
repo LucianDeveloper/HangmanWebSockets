@@ -14,6 +14,14 @@ class User(models.BaseUser, PydanticModel):
         orm_mode = True
         orig_model = UserModel
 
+    def __str__(self):
+        return (
+            '{'
+            f'"email": "{self.email}",'
+            f'"id": "{self.id}"'
+            '}'
+        )
+
 
 class UserCreate(models.BaseUserCreate):
     pass

@@ -1,56 +1,9 @@
 from typing import List
 from fastapi import WebSocket
-from uuid import UUID
-
-
-class Pair:
-    def __init__(
-            self,
-            first_user: WebSocket,
-            first_id: int,
-            second_user: WebSocket,
-            second_id: int
-    ):
-        self.__id = UUID()
-        self.__first_ws = first_user
-        self.__first_id = first_id
-        self.__second_ws = second_user
-        self.__second_id = second_id
-        self.__wait_word = True
-        self.__is_first = True
-        self.__is_run = True
-
-    async def send_action(self, action):
-        pass
-        # await self.__first_ws.send_json()
-        # await self.__second_ws.send_json()
-
-    async def disconnect(self):
-        pass
-        # ToDO disconnect
-        # await self.send_action(disconnect)
-
-    async def get_users_ws(self):
-        return self.__first_ws, self.__second_ws
-
-    async def is_pair_by_id(self, check_id: int):
-        return check_id == self.__first_id or check_id == self.__second_id
-
-    @property
-    def is_wait_word(self):
-        return self.__wait_word
-
-    @property
-    def is_step_first(self):
-        return self.__is_first
-
-    @property
-    def is_run(self):
-        return self.__is_run
-
-    @property
-    def id(self):
-        return self.__id
+from src.users.schemas import User
+from src.game.pair import Pair
+from src.game.connection import Connection
+from src.game import actions
 
 
 class ConnectionManager:
@@ -60,29 +13,45 @@ class ConnectionManager:
         return cls.instance
 
     def __init__(self):
-        self.users_without_pair: List[WebSocket] = []
+        self.users_without_pair: List[Connection] = []
         self.pairs: List[Pair] = []
 
-    async def connect(self, websocket: WebSocket, client_id: int):
+    async def connect(self, websocket: WebSocket, user: User):
         await websocket.accept()
         if len(self.users_without_pair) > 0:
-            ws = self.users_without_pair.pop(0)
-            # ToDO add with client_id
-            pair = Pair(ws, None, websocket, None)
+            connection = self.users_without_pair.pop(0)
+            pair = Pair(connection.ws, connection.user, websocket, user)
             self.pairs.append(pair)
-            # ToDO send connect action
-            # ToDO await pair.send_action(action)
+            await pair.start()
         else:
-            self.users_without_pair.append(websocket)
+            new_conn = Connection(websocket, user)
+            self.users_without_pair.append(new_conn)
+            await websocket.send_json(await actions.connect_single())
 
-    async def disconnect(self, websocket: WebSocket, client_id: int):
+    async def new_game_action(self, websocket: WebSocket, data: dict, user: User):
+        pair = await self.get_pair(data['pair_id'])
+        if pair is None:
+            return None
+        if data['wait_word']:
+            word = data['word']
+            if word is not None and len(word) > 1:
+                await pair.set_word(word)
+        elif data['new_char'] is not None:
+            await pair.get_new_letter(data['new_char'])
+
+    async def get_pair(self, pair_id: str):
+        for pair in self.pairs:
+            if await pair.is_pair_by_id(pair_id):
+                return pair
+        return None
+
+    async def disconnect(self, websocket: WebSocket):
         if websocket in self.users_without_pair:
             self.users_without_pair.remove(websocket)
             return
         for pair in self.pairs:
-            if await pair.is_pair_by_id(client_id):
-                # ToDo send disconnect
-                # pair.disconnect()
+            if await pair.is_pair_by_ws(websocket):
+                await pair.disconnect()
                 self.pairs.remove(pair)
                 return
 

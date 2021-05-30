@@ -16,7 +16,7 @@ iso8601==0.1.14
 makefun==1.11.3
 passlib==1.7.4
 pycparser==2.20
-pydantic==1.8.1
+pydantic==1.8.2
 PyJWT==2.0.1
 pypika-tortoise==0.1.0
 python-dotenv==0.17.1
